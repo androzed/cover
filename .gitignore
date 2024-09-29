@@ -1,0 +1,21 @@
+# Dependency directories
+node_modules/
+
+# Debug log from npm
+npm-debug.log*
+
+# Environment variables
+.env
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Screenshot output directory
+public/
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
