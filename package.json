@@ -1,0 +1,12 @@
+{
+  "name": "cover",
+  "version": "1.0.0",
+  "description": "This is a simple web service that takes screenshots of web pages using Puppeteer.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
