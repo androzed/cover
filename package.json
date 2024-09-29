@@ -1,15 +1,10 @@
 {
   "name": "cover",
   "version": "1.0.0",
-<<<<<<< HEAD
-=======
-  "description": "This is a simple web service that takes screenshots of web pages using Puppeteer.",
->>>>>>> origin/main
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-<<<<<<< HEAD
   "author": "",
   "license": "ISC",
   "description": "",
@@ -18,9 +13,3 @@
     "puppeteer": "^23.1.0"
   }
 }
-=======
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
-}
->>>>>>> origin/main
