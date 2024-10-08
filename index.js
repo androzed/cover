@@ -26,7 +26,7 @@ app.get('/screenshot', async (req, res) => {
     await page.setViewport({ 
       width: 1200, 
       height: 630, 
-      deviceScaleFactor: 1 
+      deviceScaleFactor: 2 
     });
 
     // Navigate to the URL
