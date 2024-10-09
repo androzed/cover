@@ -24,8 +24,8 @@ app.get('/screenshot', async (req, res) => {
 
     // Set viewport size with a higher deviceScaleFactor for better quality
     await page.setViewport({ 
-      width: 1200, 
-      height: 630, 
+      width: 600, 
+      height: 315, 
       deviceScaleFactor: 2 
     });
 
