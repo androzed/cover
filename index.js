@@ -2,6 +2,7 @@ const express = require('express');
 const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs');
+const sharp = require('sharp');
 const app = express();
 const port = 3000;
 
@@ -14,48 +15,64 @@ app.get('/screenshot', async (req, res) => {
     return res.status(400).send('URL query parameter is required');
   }
 
-  // Launch Puppeteer with --no-sandbox and --disable-setuid-sandbox flags
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-  const page = await browser.newPage();
-   // Inject the Noto Emoji font via Google Fonts CDN
-   await page.addStyleTag({
-        url: 'https://fonts.googleapis.com/css2?family=Noto+Emoji&display=swap',
-    });
-
-    // Set the font family for the page
-    await page.evaluate(() => {
-        document.body.style.fontFamily = "'Noto Emoji', sans-serif";
-    });
-
+  let browser;
   try {
-    // Set viewport size
-    await page.setViewport({ width: 1200, height: 800 });
+    // Launch Puppeteer with additional flags for better rendering
+    browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--font-render-hinting=none'],
+      defaultViewport: null
+    });
+    const page = await browser.newPage();
 
-    // Navigate to the URL
-    await page.goto(url, { waitUntil: 'networkidle2' });
+    // Set viewport size with a higher deviceScaleFactor for better quality
+    await page.setViewport({ 
+      width: 1200, 
+      height: 630, 
+      deviceScaleFactor: 2 
+    });
+
+    // Set user agent to a modern browser
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+
+    // Navigate to the URL with a longer timeout
+    await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
 
     // Wait for the specific element to be loaded
-    await page.waitForSelector('.container');
+    await page.waitForSelector('.container', { timeout: 15000 });
 
     // Create a file name based on the current timestamp
     const timestamp = Date.now();
     const filePath = path.join(__dirname, 'public', `cover-${timestamp}.png`);
 
-    // Capture the specific element and its content
-    const element = await page.$('.container');
-    await element.screenshot({ path: filePath });
+    // Capture the full page
+    await page.screenshot({ 
+      path: filePath,
+      type: 'png',
+      fullPage: false,
+      clip: {
+        x: 0,
+        y: 0,
+        width: 1200,
+        height: 630
+      },
+      omitBackground: true
+    });
 
-    // Close the browser
-    await browser.close();
+    // Optimize the image
+    await sharp(filePath)
+      .png({ quality: 100, compressionLevel: 9 })
+      .toFile(path.join(__dirname, 'public', `cover-${timestamp}.png`));
 
-    // Respond with the screenshot URL
+    // Respond with the screenshot URL (unchanged from the original)
     const screenshotUrl = `/screenshots/cover-${timestamp}.png`;
     res.json({ screenshotUrl });
   } catch (error) {
-    await browser.close();
-    res.status(500).send('error screenshot');
+    console.error('Screenshot error:', error);
+    res.status(500).send(`Error taking screenshot: ${error.message}`);
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 });
 
