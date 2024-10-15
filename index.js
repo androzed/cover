@@ -40,13 +40,14 @@ app.get('/screenshot', async (req, res) => {
     // Wait for the specific element to be loaded
     await page.waitForSelector('.container', { timeout: 15000 });
 
-    // Create a file name based on the current timestamp
+    // Create file names based on the current timestamp
     const timestamp = Date.now();
-    const filePath = path.join(__dirname, 'public', `cover-${timestamp}.png`);
+    const originalFilePath = path.join(__dirname, 'public', `original-${timestamp}.png`);
+    const optimizedFilePath = path.join(__dirname, 'public', `optimized-${timestamp}.png`);
 
     // Capture the full page
     await page.screenshot({ 
-      path: filePath,
+      path: originalFilePath,
       type: 'png',
       fullPage: false,
       clip: {
@@ -59,12 +60,15 @@ app.get('/screenshot', async (req, res) => {
     });
 
     // Optimize the image
-    await sharp(filePath)
-      .png({ quality: 100, compressionLevel: 9 })
-      .toFile(path.join(__dirname, 'public', `cover-${timestamp}.png`));
+    await sharp(originalFilePath)
+      .png({ quality: 80, compressionLevel: 9 })
+      .toFile(optimizedFilePath);
 
-    // Respond with the screenshot URL (unchanged from the original)
-    const screenshotUrl = `/screenshots/cover-${timestamp}.png`;
+    // Remove the original file
+    fs.unlinkSync(originalFilePath);
+
+    // Respond with the optimized screenshot URL
+    const screenshotUrl = `/screenshots/optimized-${timestamp}.png`;
     res.json({ screenshotUrl });
   } catch (error) {
     console.error('Screenshot error:', error);
