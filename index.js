@@ -44,7 +44,7 @@ app.get('/screenshot', async (req, res) => {
     const filePath = path.join(__dirname, 'public', `cover-${timestamp}.png`);
 
     // Capture the specific element and its content
-    const element = await page.$('#capture3');
+    const element = await page.$('.container');
     await element.screenshot({ path: filePath });
 
     // Close the browser
