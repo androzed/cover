@@ -24,12 +24,8 @@ app.get('/screenshot', async (req, res) => {
     });
     const page = await browser.newPage();
 
-    // Set viewport size to double the desired dimensions
-    await page.setViewport({ 
-      width: 2400, 
-      height: 1260, 
-      deviceScaleFactor: 1 
-    });
+    // Set a larger viewport to ensure we capture everything
+    await page.setViewport({ width: 1920, height: 1080 });
 
     // Set user agent to a modern browser
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
@@ -40,31 +36,46 @@ app.get('/screenshot', async (req, res) => {
     // Wait for the specific element to be loaded
     await page.waitForSelector('.container', { timeout: 15000 });
 
+    // Get the bounding box of the .container element
+    const element = await page.$('.container');
+    const boundingBox = await element.boundingBox();
+
     // Create file names based on the current timestamp
     const timestamp = Date.now();
     const originalFilePath = path.join(__dirname, 'public', `original-${timestamp}.png`);
     const optimizedFilePath = path.join(__dirname, 'public', `optimized-${timestamp}.png`);
 
-    // Capture the full page
-    await page.screenshot({ 
+    // Capture the .container element
+    await element.screenshot({ 
       path: originalFilePath,
       type: 'png',
-      fullPage: false,
-      clip: {
-        x: 0,
-        y: 0,
-        width: 2400,
-        height: 1260
-      },
       omitBackground: true
     });
 
+    // Calculate the aspect ratio of the desired dimensions
+    const targetAspectRatio = 1200 / 630;
+
+    // Calculate dimensions for cropping
+    let cropWidth = boundingBox.width;
+    let cropHeight = boundingBox.height;
+    
+    if (cropWidth / cropHeight > targetAspectRatio) {
+      // If wider than target ratio, adjust width
+      cropWidth = cropHeight * targetAspectRatio;
+    } else {
+      // If taller than target ratio, adjust height
+      cropHeight = cropWidth / targetAspectRatio;
+    }
+
     // Optimize and resize the image
     await sharp(originalFilePath)
-      .resize(1200, 630, {
+      .resize({
+        width: Math.round(cropWidth),
+        height: Math.round(cropHeight),
         fit: 'cover',
         position: 'top'
       })
+      .resize(1200, 630, { fit: 'fill' })
       .png({ quality: 80, compressionLevel: 9 })
       .toFile(optimizedFilePath);
 
