@@ -24,11 +24,11 @@ app.get('/screenshot', async (req, res) => {
     });
     const page = await browser.newPage();
 
-    // Set viewport size with a higher deviceScaleFactor for better quality
+    // Set viewport size to double the desired dimensions
     await page.setViewport({ 
-      width: 1200, 
-      height: 630, 
-      deviceScaleFactor: 2 
+      width: 2400, 
+      height: 1260, 
+      deviceScaleFactor: 1 
     });
 
     // Set user agent to a modern browser
@@ -53,14 +53,18 @@ app.get('/screenshot', async (req, res) => {
       clip: {
         x: 0,
         y: 0,
-        width: 1200,
-        height: 630
+        width: 2400,
+        height: 1260
       },
       omitBackground: true
     });
 
-    // Optimize the image
+    // Optimize and resize the image
     await sharp(originalFilePath)
+      .resize(1200, 630, {
+        fit: 'cover',
+        position: 'top'
+      })
       .png({ quality: 80, compressionLevel: 9 })
       .toFile(optimizedFilePath);
 
